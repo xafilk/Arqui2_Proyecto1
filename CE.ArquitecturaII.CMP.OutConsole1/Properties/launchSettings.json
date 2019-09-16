@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CE.ArquitecturaII.CMP.OutConsole1": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
