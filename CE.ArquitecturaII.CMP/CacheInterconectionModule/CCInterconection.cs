@@ -93,7 +93,7 @@ namespace CE.ArquitecturaII.CMP.CacheInterconectionModule
                     };
                     requestQueue.Enqueue(request);
                     result = true;
-                    Console.WriteLine(myCoreId + ": " + "Solitud de valor por interconexión");
+                    Console.WriteLine(myCoreId + ": " + "Solitud de valor por red de Interconexión");
                     break;
                 }
             }
@@ -131,13 +131,13 @@ namespace CE.ArquitecturaII.CMP.CacheInterconectionModule
             //Security Validation
             if (toCoreId == myCoreId)
             {
+                Console.WriteLine(myCoreId + ": " + "Respuesta por red Interconexión");
+                //Change Type to Return
+                type = 2;
                 value = myValue;
                 //Change the Id to the Receiver Id
                 toCoreId = fromCoreId;
                 fromCoreId = myCoreId;
-                //Change Type to Return
-                type = 2;
-
             }
         }
 
@@ -167,6 +167,7 @@ namespace CE.ArquitecturaII.CMP.CacheInterconectionModule
             string result;
             if (toCoreId == myCoreId && type == 2 && bussy)
             {
+                Console.WriteLine(myCoreId + ": " + "Se obtiene por red de Interconexión");
                 result = value.ToString();
                 bussy = false;
             }

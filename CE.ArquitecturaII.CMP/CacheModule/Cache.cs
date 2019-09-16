@@ -129,18 +129,9 @@ namespace CE.ArquitecturaII.CMP.CacheModule
         public void WriteCacheValue(string tag, int value, string state)
         {
             int position = Convert.ToInt32(tag, 2) % 2;
-            bool exist = ExistCacheValue(tag);
-            if (exist || memoryCache[position].State == "I" || memoryCache[position].Tag == "")
-            {
-                memoryCache[position].Value = value;
-                memoryCache[position].Tag = tag;
-                memoryCache[position].State = state;
-            }
-            else
-            {
-                throw new CorrespondenceMissCacheException();
-            }
-
+            memoryCache[position].Value = value;
+            memoryCache[position].Tag = tag;
+            memoryCache[position].State = state;
         }
 
         /// <summary>

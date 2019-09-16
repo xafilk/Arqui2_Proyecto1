@@ -17,7 +17,7 @@ namespace CE.ArquitecturaII.CMP.ConstantsModule
         public const string RAM_ID = "RAM_ONE";
         public const string MISS = "MISS";
         public const string WRITE = "WRITE";
-        public const int CLOCK_CACHE_CONTROLLER = 100; //ms
+        public const int CLOCK_CACHE_CONTROLLER = 1000; //ms
         public const int CLOCK_CACHE_INTERCONECTION_BUS = 1; //ms
         public const int CLOCK_CACHE_ACTION_BUS = 1; //ms
         public const int CLOCK_MEMORY_BUS = 1;

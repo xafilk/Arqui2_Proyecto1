@@ -57,7 +57,7 @@ namespace CE.ArquitecturaII.CMP.CacheControllerModule
         private void ReadCCActionBus()
         {
             while (threadFlag.Flag)
-            {                   
+            {
                 string action = ccAction.ReadActionBus(CORENAME);
                 //If bus is free or default or itself miss do nothing
                 if (action == Constants.CC_ACTION_BUS_FREE || action == Constants.CC_ACTION_ALREADY)
@@ -69,7 +69,7 @@ namespace CE.ArquitecturaII.CMP.CacheControllerModule
                     string[] temp = action.Split('@');
                     MakeAction(temp[0], Int32.Parse(temp[1]), temp[2]);
                 }
-            }         
+            }
         }
 
         /// <summary>
@@ -129,28 +129,28 @@ namespace CE.ArquitecturaII.CMP.CacheControllerModule
             {
                 if (clock.CLOCK_CacheController)
                 {
+                    int position = Convert.ToInt32(tag, 2) % 2;
                     try
                     {
                         int value = cache.ReadCacheValue(tag); //HIT
                     }
                     catch (ColdMissCacheException ex1) //ColdMiss
                     {
-                        ccAction.WriteActionBus(Constants.MISS, tag, CORENAME);
-                        log.Error(CORENAME + ": " + ex1.Message);
+                        Console.WriteLine(CORENAME + ": " + ex1.Message);
                         result = ManageMiss(tag);
                     }
                     catch (InvalidMissCacheException ex2)
                     {
-                        ccAction.WriteActionBus(Constants.MISS, tag, CORENAME);
-                        log.Error(CORENAME + ": " + ex2.Message);
+                        Console.WriteLine(CORENAME + ": " + ex2.Message);
                         result = ManageMiss(tag);
                     }
                     catch (CorrespondenceMissCacheException ex3)
                     {
-                        ccAction.WriteActionBus(Constants.MISS, tag, CORENAME);
-                        log.Error(CORENAME + ": " + ex3.Message);
+                        Console.WriteLine(CORENAME + ": " + ex3.Message);
+                        Console.WriteLine("Cache: " + CORENAME + " Tag Actual: " + cache.memoryCache[position].Tag + " Valor Actual: " + cache.memoryCache[position].Value + " State Actual: " + cache.memoryCache[position].State);
                         result = ManageMiss(tag);
                     }
+                    ccAction.WriteActionBus(Constants.MISS, tag, CORENAME);
                     reading = false;
                 }
             }
@@ -224,6 +224,7 @@ namespace CE.ArquitecturaII.CMP.CacheControllerModule
         public void SaveCacheValue(string tag, int value)
         {
             bool saving = true;
+            int position = Convert.ToInt32(tag, 2) % 2;
             while (saving)
             {
                 if (clock.CLOCK_CacheController)
@@ -231,26 +232,32 @@ namespace CE.ArquitecturaII.CMP.CacheControllerModule
                     clock.CLOCK_CacheController = false;
                     try
                     {
-                        cache.WriteCacheValue(tag, value, "M");
-                    }
-                    catch (CorrespondenceMissCacheException ex1)
-                    {
-                        log.Error(ex1.Message);
-                        int position = Convert.ToInt32(tag, 2) % 2;
-                        var oldData = cache.ReadCacheValue(position);
-                        memBus.RequestBus(CORENAME, oldData.Item2, Constants.CC_WRITE, oldData.Item1);
-                        cache.WriteCacheValue(tag, value, "M");
-                    }
-                    finally
-                    {
+                        bool exist = cache.ExistCacheValue(tag);
+                        if (exist || cache.memoryCache[position].State == "I" || cache.memoryCache[position].Tag == "")
+                        {
+                            cache.WriteCacheValue(tag, value, "M");
+                            ccAction.WriteActionBus(Constants.WRITE, tag, CORENAME);
+                        }
+                        else if (!exist)
+                        {
+                            Console.WriteLine(CORENAME + "  Correspondence Miss Cache Exception");
+                            var oldData = cache.ReadCacheValue(position);
+                            memBus.RequestBus(CORENAME, oldData.Item2, Constants.CC_WRITE, oldData.Item1);
+                            Console.WriteLine("Cache: " + CORENAME + " Tag Actual: " + oldData.Item2 + " Valor Actual: " + oldData.Item1);
+                            cache.WriteCacheValue(tag, value, "M");
+                            ccAction.WriteActionBus(Constants.WRITE, tag, CORENAME);
+                        }
                         ccInter.SaveCacheDataTable(tag, CORENAME, CORENUMBER);
-                        ccAction.WriteActionBus(Constants.WRITE, tag, CORENAME);
+                        
+                    }
+                    catch (Exception ex1)
+                    {
+                        Console.WriteLine("Error: " + ex1.Message);
                     }
                     saving = false;
                 }
             }
         }
-
         private void InitializeThreads()
         {
             Thread monitorActionBusThr = new Thread(ReadCCActionBus);
@@ -258,8 +265,6 @@ namespace CE.ArquitecturaII.CMP.CacheControllerModule
             monitorActionBusThr.Start();
             monitorCCInterBusThr.Start();
         }
-
-
         #endregion Methods
     }
 }
